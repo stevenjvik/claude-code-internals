@@ -1,6 +1,17 @@
 # PARITY GAP ANALYSIS
 
-Scope: read-only comparison between the original TypeScript source at `/home/bellman/Workspace/claude-code/src/` and the Rust port under `rust/crates/`.
+What this Rust port covers vs the real TypeScript Claude Code, and what the gaps mean for your use case.
+
+## How to read this document
+
+Each section compares a subsystem between the TypeScript original and this Rust port. "Missing" means the Rust port doesn't implement that feature. For offline/local model use, many "missing" features don't matter:
+
+- **Plugins, skills registry, team memory** -- cloud features, irrelevant for local operation
+- **Hooks execution** -- relevant and would be useful for local validation/audit
+- **CLI breadth** -- some missing commands matter (/plan, /review), others don't (/agents, /tasks)
+- **Structured/remote transports** -- only matter for Claude Code Remote, not local REPL use
+
+Scope: read-only comparison between the original TypeScript source and the Rust port under `rust/crates/`.
 
 Method: compared feature surfaces, registries, entrypoints, and runtime plumbing only. No TypeScript source was copied.
 

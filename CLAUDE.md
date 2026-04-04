@@ -1,21 +1,32 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This repository is a study of Claude Code's agent harness internals, maintained as a reference for NOC operators.
 
-## Detected stack
-- Languages: Rust.
-- Frameworks: none detected from the supported starter markers.
+## Stack
+
+- Language: Rust (2021 edition)
+- Binary: `claw` (built from `rust/crates/rusty-claude-cli/`)
+- Workspace: `rust/` contains all active code
 
 ## Verification
-- Run Rust verification from `rust/`: `cargo fmt`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`
-- `src/` and `tests/` are both present; update both surfaces together when behavior changes.
 
-## Repository shape
-- `rust/` contains the Rust workspace and active CLI/runtime implementation.
-- `src/` contains source files that should stay consistent with generated guidance and tests.
-- `tests/` contains validation surfaces that should be reviewed alongside code changes.
+From the `rust/` directory:
+```bash
+cargo fmt --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+```
 
-## Working agreement
-- Prefer small, reviewable changes and keep generated bootstrap files aligned with actual repo workflows.
-- Keep shared defaults in `.claude.json`; reserve `.claude/settings.local.json` for machine-local overrides.
-- Do not overwrite existing `CLAUDE.md` content automatically; update it intentionally when repo workflows change.
+## Repository structure
+
+- `rust/crates/` — 6 Rust crates (api, commands, compat-harness, runtime, tools, rusty-claude-cli)
+- `docs/` — Study guides (architecture, token budget, offline ops, internals guide)
+- `PARITY.md` — Gap analysis between this Rust port and the real TypeScript CC
+- `archive/original` branch — Preserved upstream fork state before this conversion
+
+## Conventions
+
+- Conventional commits (`feat:`, `fix:`, `chore:`, `docs:`)
+- No force-push to main
+- Unsafe code is forbidden (`#![forbid(unsafe_code)]` in workspace)
+- Clippy pedantic warnings enabled

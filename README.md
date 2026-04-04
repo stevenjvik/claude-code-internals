@@ -1,191 +1,86 @@
-# Rewriting Project Claw Code
+# Claude Code Internals
 
-<p align="center">
-  <strong>⭐ The fastest repo in history to surpass 50K stars, reaching the milestone in just 2 hours after publication ⭐</strong>
-</p>
+A reference for Claude Code's agent harness architecture, based on a clean-room Rust reimplementation. Built for infrastructure operators who want to understand how Claude Code works under the hood, optimize token usage, and run offline workloads against local models.
 
-<p align="center">
-  <a href="https://star-history.com/#instructkr/claw-code&Date">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=instructkr/claw-code&type=Date&theme=dark" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=instructkr/claw-code&type=Date" />
-      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=instructkr/claw-code&type=Date" width="600" />
-    </picture>
-  </a>
-</p>
+> Original Rust port by [instructkr/claw-code](https://github.com/instructkr/claw-code). Upstream state preserved on the `archive/original` branch.
 
-<p align="center">
-  <img src="assets/clawd-hero.jpeg" alt="Claw" width="300" />
-</p>
+## Why this exists
 
-<p align="center">
-  <strong>Better Harness Tools, not merely storing the archive of leaked Claude Code</strong>
-</p>
+Claude Code is a powerful agent harness, but it's a black box. Understanding its internals helps you:
 
-<p align="center">
-  <a href="https://github.com/sponsors/instructkr"><img src="https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink?logo=github&style=for-the-badge" alt="Sponsor on GitHub" /></a>
-</p>
+- Know where your tokens are going (system prompt, tool definitions, context growth)
+- Run a local CC-like agent against Ollama for low-stakes ops tasks
+- Extend the tool system with MCP servers for your own infrastructure
+- Make informed decisions about model routing, context management, and session persistence
 
-> [!IMPORTANT]
-> **Rust port is now in progress** on the [`dev/rust`](https://github.com/instructkr/claw-code/tree/dev/rust) branch and is expected to be merged into main today. The Rust implementation aims to deliver a faster, memory-safe harness runtime. Stay tuned — this will be the definitive version of the project.
+## Architecture
 
-> If you find this work useful, consider [sponsoring @instructkr on GitHub](https://github.com/sponsors/instructkr) to support continued open-source harness engineering research.
+The Rust implementation lives in `rust/crates/` as 6 focused crates:
 
----
-
-## Backstory
-
-At 4 AM on March 31, 2026, I woke up to my phone blowing up with notifications. The Claude Code source had been exposed, and the entire dev community was in a frenzy. My girlfriend in Korea was genuinely worried I might face legal action from Anthropic just for having the code on my machine — so I did what any engineer would do under pressure: I sat down, ported the core features to Python from scratch, and pushed it before the sun came up.
-
-The whole thing was orchestrated end-to-end using [oh-my-codex (OmX)](https://github.com/Yeachan-Heo/oh-my-codex) by [@bellman_ych](https://x.com/bellman_ych) — a workflow layer built on top of OpenAI's Codex ([@OpenAIDevs](https://x.com/OpenAIDevs)). I used `$team` mode for parallel code review and `$ralph` mode for persistent execution loops with architect-level verification. The entire porting session — from reading the original harness structure to producing a working Python tree with tests — was driven through OmX orchestration.
-
-The result is a clean-room Python rewrite that captures the architectural patterns of Claude Code's agent harness without copying any proprietary source. I'm now actively collaborating with [@bellman_ych](https://x.com/bellman_ych) — the creator of OmX himself — to push this further. The basic Python foundation is already in place and functional, but we're just getting started. **Stay tuned — a much more capable version is on the way.**
-
-https://github.com/instructkr/claw-code
-
-![Tweet screenshot](assets/tweet-screenshot.png)
-
-## The Creators Featured in Wall Street Journal For Avid Claude Code Fans
-
-I've been deeply interested in **harness engineering** — studying how agent systems wire tools, orchestrate tasks, and manage runtime context. This isn't a sudden thing. The Wall Street Journal featured my work earlier this month, documenting how I've been one of the most active power users exploring these systems:
-
-> AI startup worker Sigrid Jin, who attended the Seoul dinner, single-handedly used 25 billion of Claude Code tokens last year. At the time, usage limits were looser, allowing early enthusiasts to reach tens of billions of tokens at a very low cost.
->
-> Despite his countless hours with Claude Code, Jin isn't faithful to any one AI lab. The tools available have different strengths and weaknesses, he said. Codex is better at reasoning, while Claude Code generates cleaner, more shareable code.
->
-> Jin flew to San Francisco in February for Claude Code's first birthday party, where attendees waited in line to compare notes with Cherny. The crowd included a practicing cardiologist from Belgium who had built an app to help patients navigate care, and a California lawyer who made a tool for automating building permit approvals using Claude Code.
->
-> "It was basically like a sharing party," Jin said. "There were lawyers, there were doctors, there were dentists. They did not have software engineering backgrounds."
->
-> — *The Wall Street Journal*, March 21, 2026, [*"The Trillion Dollar Race to Automate Our Entire Lives"*](https://lnkd.in/gs9td3qd)
-
-![WSJ Feature](assets/wsj-feature.png)
-
----
-
-## Porting Status
-
-The main source tree is now Python-first.
-
-- `src/` contains the active Python porting workspace
-- `tests/` verifies the current Python workspace
-- the exposed snapshot is no longer part of the tracked repository state
-
-The current Python workspace is not yet a complete one-to-one replacement for the original system, but the primary implementation surface is now Python.
-
-## Why this rewrite exists
-
-I originally studied the exposed codebase to understand its harness, tool wiring, and agent workflow. After spending more time with the legal and ethical questions—and after reading the essay linked below—I did not want the exposed snapshot itself to remain the main tracked source tree.
-
-This repository now focuses on Python porting work instead.
-
-## Repository Layout
-
-```text
-.
-├── src/                                # Python porting workspace
-│   ├── __init__.py
-│   ├── commands.py
-│   ├── main.py
-│   ├── models.py
-│   ├── port_manifest.py
-│   ├── query_engine.py
-│   ├── task.py
-│   └── tools.py
-├── tests/                              # Python verification
-├── assets/omx/                         # OmX workflow screenshots
-├── 2026-03-09-is-legal-the-same-as-legitimate-ai-reimplementation-and-the-erosion-of-copyleft.md
-└── README.md
+```
+rust/crates/
+  api/              Anthropic HTTP client, SSE streaming, OAuth
+  commands/         Slash command registry (/status, /compact, /model, etc.)
+  compat-harness/   TS manifest extraction (for parity auditing)
+  runtime/          The brain: conversation loop, config, sessions, MCP, prompts, hooks
+  rusty-claude-cli/ The face: REPL, CLI, streaming display, tool call rendering
+  tools/            The hands: 18 built-in tools (bash, read, write, edit, grep, glob, web, etc.)
 ```
 
-## Python Workspace Overview
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full crate map, conversation loop flow, and tool dispatch path.
 
-The new Python `src/` tree currently provides:
+## Study Guides
 
-- **`port_manifest.py`** — summarizes the current Python workspace structure
-- **`models.py`** — dataclasses for subsystems, modules, and backlog state
-- **`commands.py`** — Python-side command port metadata
-- **`tools.py`** — Python-side tool port metadata
-- **`query_engine.py`** — renders a Python porting summary from the active workspace
-- **`main.py`** — a CLI entrypoint for manifest and summary output
+| Document | What it covers |
+|----------|---------------|
+| [docs/INTERNALS-GUIDE.md](docs/INTERNALS-GUIDE.md) | Annotated reading order through the Rust source. Start here. |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 6-crate map, conversation loop, tool dispatch, session lifecycle |
+| [docs/TOKEN-BUDGET.md](docs/TOKEN-BUDGET.md) | Where every token goes. System prompt breakdown, tool overhead, compaction |
+| [docs/OFFLINE-OPS.md](docs/OFFLINE-OPS.md) | Running against Ollama for local/offline operation |
+| [PARITY.md](PARITY.md) | Gap analysis: what this Rust port covers vs the real TypeScript CC |
 
-## Quickstart
+## Token Budget (summary)
 
-Render the Python porting summary:
+Biggest token drains in Claude Code, from the source:
+
+| Component | Tokens per request | Source file |
+|-----------|-------------------|-------------|
+| System prompt (static sections) | ~300 | `runtime/prompt.rs` |
+| Git diff injection | 500-1500 | `runtime/prompt.rs` (`read_git_diff`) |
+| CLAUDE.md instruction chain | up to ~3000 | `runtime/prompt.rs` (4K/file, 12K total cap) |
+| Tool definitions (all 18) | ~2000 | `tools/lib.rs` (`mvp_tool_specs`) |
+| Config section | 200-500 | `runtime/prompt.rs` (`render_config_section`) |
+| **Total baseline per request** | **~3000-7300** | |
+
+Compaction triggers at 10K tokens, preserves last 4 messages. See [docs/TOKEN-BUDGET.md](docs/TOKEN-BUDGET.md) for optimization strategies.
+
+## Build and Run
 
 ```bash
-python3 -m src.main summary
+cd rust/
+cargo build --release
+
+# Interactive REPL
+./target/release/claw
+
+# One-shot prompt
+./target/release/claw prompt "explain this codebase"
+
+# With specific model
+./target/release/claw --model sonnet prompt "fix the bug"
 ```
 
-Print the current Python workspace manifest:
-
+Set credentials:
 ```bash
-python3 -m src.main manifest
+export ANTHROPIC_API_KEY="sk-ant-..."
+# Or point to Ollama/OpenRouter:
+export ANTHROPIC_BASE_URL="http://localhost:11434/v1"
 ```
 
-List the current Python modules:
+## Parity Status
 
-```bash
-python3 -m src.main subsystems --limit 16
-```
+This is NOT a complete replacement for Claude Code. It covers the core architecture but has gaps. See [PARITY.md](PARITY.md) for the full breakdown. Key gaps: plugins (missing), hooks (parsed not executed), CLI breadth (18 vs 40+ commands), skills (local only).
 
-Run verification:
+## License
 
-```bash
-python3 -m unittest discover -s tests -v
-```
-
-Run the parity audit against the local ignored archive (when present):
-
-```bash
-python3 -m src.main parity-audit
-```
-
-Inspect mirrored command/tool inventories:
-
-```bash
-python3 -m src.main commands --limit 10
-python3 -m src.main tools --limit 10
-```
-
-## Current Parity Checkpoint
-
-The port now mirrors the archived root-entry file surface, top-level subsystem names, and command/tool inventories much more closely than before. However, it is **not yet** a full runtime-equivalent replacement for the original TypeScript system; the Python tree still contains fewer executable runtime slices than the archived source.
-
-
-## Built with `oh-my-codex`
-
-The restructuring and documentation work on this repository was AI-assisted and orchestrated with Yeachan Heo's [oh-my-codex (OmX)](https://github.com/Yeachan-Heo/oh-my-codex), layered on top of Codex.
-
-- **`$team` mode:** used for coordinated parallel review and architectural feedback
-- **`$ralph` mode:** used for persistent execution, verification, and completion discipline
-- **Codex-driven workflow:** used to turn the main `src/` tree into a Python-first porting workspace
-
-### OmX workflow screenshots
-
-![OmX workflow screenshot 1](assets/omx/omx-readme-review-1.png)
-
-*Ralph/team orchestration view while the README and essay context were being reviewed in terminal panes.*
-
-![OmX workflow screenshot 2](assets/omx/omx-readme-review-2.png)
-
-*Split-pane review and verification flow during the final README wording pass.*
-
-## Community
-
-<p align="center">
-  <a href="https://instruct.kr/"><img src="assets/instructkr.png" alt="instructkr" width="400" /></a>
-</p>
-
-Join the [**instructkr Discord**](https://instruct.kr/) — the best Korean language model community. Come chat about LLMs, harness engineering, agent workflows, and everything in between.
-
-[![Discord](https://img.shields.io/badge/Join%20Discord-instruct.kr-5865F2?logo=discord&style=for-the-badge)](https://instruct.kr/)
-
-## Star History
-
-See the chart at the top of this README.
-
-## Ownership / Affiliation Disclaimer
-
-- This repository does **not** claim ownership of the original Claude Code source material.
-- This repository is **not affiliated with, endorsed by, or maintained by Anthropic**.
+See repository root. This is a reference fork, not a production tool.
