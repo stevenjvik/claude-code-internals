@@ -2,7 +2,9 @@
 
 A reference for Claude Code's agent harness architecture, based on a clean-room Rust reimplementation. Built for infrastructure operators who want to understand how Claude Code works under the hood, optimize token usage, and run offline workloads against local models.
 
-> Original Rust port by [instructkr/claw-code](https://github.com/instructkr/claw-code). Upstream state preserved on the `archive/original` branch.
+> *Independent study, not affiliated with, endorsed by, or operated by Anthropic. All analysis is based on observation of Claude Code's publicly-available behavior.*
+
+> Original Rust port by [instructkr/claw-code](https://github.com/instructkr/claw-code) (authors: Seongho Hong, Yeachan-Heo). Upstream state preserved on the `archive/original` branch.
 
 ## Why this exists
 
